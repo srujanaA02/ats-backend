@@ -1,148 +1,277 @@
 {
-    "info": {
-        "name": "ATS Backend API",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "name": "ATS Backend API",
+    "description": "Job Application Tracking System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Get Access Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/token/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"recruiter1\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/token/refresh/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        }
+      ]
     },
-    "item": [
+    {
+      "name": "Jobs",
+      "item": [
         {
-            "name": "Auth",
-            "item": [
-                {
-                    "name": "Login",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "url": "{{base_url}}/token/",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"username\": \"admin\", \"password\": \"admin\"}"
-                        }
-                    }
-                },
-                {
-                    "name": "Refresh Token",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "url": "{{base_url}}/token/refresh/",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"refresh\": \"{{refresh_token}}\"}"
-                        }
-                    }
-                }
-            ]
+          "name": "List All Jobs",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/jobs/",
+            "header": []
+          }
         },
         {
-            "name": "Jobs",
-            "item": [
-                {
-                    "name": "List Jobs",
-                    "request": {
-                        "method": "GET",
-                        "url": "{{base_url}}/jobs/"
-                    }
-                },
-                {
-                    "name": "Create Job",
-                    "request": {
-                        "method": "POST",
-                        "url": "{{base_url}}/jobs/",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"title\": \"Backend Dev\", \"company\": 1}"
-                        }
-                    }
-                }
-            ]
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/jobs/1/",
+            "header": []
+          }
         },
         {
-            "name": "Applications",
-            "item": [
-                {
-                    "name": "List Applications",
-                    "request": {
-                        "method": "GET",
-                        "url": "{{base_url}}/applications/"
-                    }
-                },
-                {
-                    "name": "Apply Job",
-                    "request": {
-                        "method": "POST",
-                        "url": "{{base_url}}/applications/apply/",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"job\": 1, \"user\": 1}"
-                        }
-                    }
-                },
-                {
-                    "name": "Change Stage",
-                    "request": {
-                        "method": "POST",
-                        "url": "{{base_url}}/applications/1/change-stage/",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"new_stage\": \"interview\"}"
-                        }
-                    }
-                }
-            ]
+          "name": "Create Job (Recruiter Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/jobs/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backend Developer\",\n  \"description\": \"We are hiring a backend developer\",\n  \"status\": \"open\",\n  \"company\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Job (Recruiter Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/jobs/1/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Backend Developer\",\n  \"description\": \"Updated job description\",\n  \"status\": \"open\",\n  \"company\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Job (Recruiter Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/jobs/1/"
+          }
         }
-    ],
-    "variable": [
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
         {
-            "key": "base_url",
-            "value": "http://127.0.0.1:8000/api"
+          "name": "List Applications (Recruiter/Manager/Own)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/applications/"
+          }
         },
         {
-            "key": "access_token",
-            "value": ""
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/applications/1/"
+          }
         },
         {
-            "key": "refresh_token",
-            "value": ""
+          "name": "Apply to Job (Candidate Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/applications/apply/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Application Stage (Recruiter/Manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/applications/1/change-stage/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stage\": \"Screening\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Applications for Job (Recruiter Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/jobs/1/applications/"
+          }
         }
-    ]
+      ]
+    },
+    {
+      "name": "Application History",
+      "item": [
+        {
+          "name": "List All Application Histories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/histories/"
+          }
+        },
+        {
+          "name": "Get History Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/histories/1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "List All Companies",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/companies/"
+          }
+        },
+        {
+          "name": "Get Company Details",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/companies/1/"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
 }
