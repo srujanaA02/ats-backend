@@ -29,3 +29,37 @@ def change_application_stage(application, new_stage, actor):
         body=f"Your application for {application.job.title} has been updated to {new_stage}.",
         to_email=application.candidate.email,
     )
+
+
+def create_application(candidate, job):
+    """
+    Create application with transaction and trigger async notifications.
+    """
+    # Check if candidate already applied
+    if Application.objects.filter(candidate=candidate, job=job).exists():
+        raise ValueError("You have already applied for this job")
+    
+    with transaction.atomic():
+        application = Application.objects.create(
+            candidate=candidate,
+            job=job,
+            stage="Applied",
+        )
+    
+    # Trigger async email notifications AFTER transaction commits
+    tasks.send_candidate_email.delay(
+        subject="Application Confirmation",
+        body=f"Your application for {job.title} has been received.",
+        to_email=candidate.email,
+    )
+    
+    # Notify recruiters in the company
+    recruiter_emails = job.company.users.filter(role="recruiter").values_list("email", flat=True)
+    for recruiter_email in recruiter_emails:
+        tasks.send_recruiter_email.delay(
+            subject=f"New Application: {job.title}",
+            body=f"{candidate.username} applied for {job.title}.",
+            to_email=recruiter_email,
+        )
+    
+    return application
