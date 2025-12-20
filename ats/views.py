@@ -67,12 +67,11 @@ class JobViewSet(viewsets.ModelViewSet):
 # ======================================================
 # APPLICATION VIEWSET
 # ======================================================
-70
 class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_queryset(self):
         """
         Filter applications based on user role.
@@ -104,28 +103,13 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             )
         
         job = get_object_or_404(Job, id=job_id)
-try:
+        
+        try:
             application = services.create_application(request.user, job)
         except ValueError as e:
             return Response(
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
-            )71
-            
-        # Trigger Celery email tasks asynchronously
-        tasks.send_candidate_email.delay(
-            subject="Application Confirmation",
-            body=f"Your application for {job.title} has been received.",
-            to_email=request.user.email,
-        )
-        
-        # Notify recruiters in the company
-        recruiter_emails = job.company.users.filter(role="recruiter").values_list("email", flat=True)
-        for recruiter_email in recruiter_emails:
-            tasks.send_recruiter_email.delay(
-                subject=f"New Application: {job.title}",
-                body=f"{request.user.username} applied for {job.title}.",
-                to_email=recruiter_email,
             )
         
         serializer = ApplicationSerializer(application)
@@ -162,9 +146,7 @@ try:
         permission_classes=[IsAuthenticated],
         url_path="change-stage",
     )
-    175
-199
-(self, request, pk=None):
+    def change_stage(self, request, pk=None):
         application = self.get_object()
         new_stage = request.data.get("stage")
         
@@ -199,13 +181,13 @@ try:
                 {"detail": "Invalid stage"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        
         # Check if transition is valid
-            if not application.can_transition_to(new_stage):
-                return Response(
-                    {"detail": f"Invalid transition from {application.stage} to {new_stage}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        if not application.can_transition_to(new_stage):
+            return Response(
+                {"detail": f"Invalid transition from {application.stage} to {new_stage}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         
         # Use service function to handle stage change with transaction
         try:
