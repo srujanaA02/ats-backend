@@ -67,10 +67,24 @@ class JobViewSet(viewsets.ModelViewSet):
 # ======================================================
 # APPLICATION VIEWSET
 # ======================================================
-class ApplicationViewSet(viewsets.ModelViewSet):
+70
+(viewsets.ModelViewSet):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Filter applications based on user role.
+        Candidates see only their own applications.
+        Recruiters/Managers see applications for their company's jobs.
+        """
+        user = self.request.user
+        if user.role == "candidate":
+            return Application.objects.filter(candidate=user)
+        elif user.role in ["recruiter", "manager"]:
+            return Application.objects.filter(job__company=user.company)
+        return Application.objects.none()
     
     # ---------------------------------------------------
     # APPLY TO JOB (CANDIDATE ONLY)
@@ -90,12 +104,14 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             )
         
         job = get_object_or_404(Job, id=job_id)
-        application = Application.objects.create(
-            candidate=request.user,
-            job=job,
-            stage="Applied",
-        )
-        
+try:
+            application = services.create_application(request.user, job)
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )71
+            
         # Trigger Celery email tasks asynchronously
         tasks.send_candidate_email.delay(
             subject="Application Confirmation",
@@ -146,7 +162,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
         url_path="change-stage",
     )
-    def change_stage(self, request, pk=None):
+    175
+199
+(self, request, pk=None):
         application = self.get_object()
         new_stage = request.data.get("stage")
         
@@ -181,6 +199,13 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                 {"detail": "Invalid stage"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Check if transition is valid
+            if not application.can_transition_to(new_stage):
+                return Response(
+                    {"detail": f"Invalid transition from {application.stage} to {new_stage}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         
         # Use service function to handle stage change with transaction
         try:
